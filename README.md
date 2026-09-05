@@ -1,4 +1,6 @@
 
+![ideal case](image.png)
+
 # Problem:
 
 Deno *can* resolve a local workspace, from an outside-workspace project.
