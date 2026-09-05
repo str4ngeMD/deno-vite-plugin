@@ -82,7 +82,7 @@ This fork does *that*.
 # then for both deno-vite-plugin and sample-vite
 rm -rf node_modules/ dist/
 deno install
-deno build
+deno run build
 
 # finally for sample-vite
 deno run dev
