@@ -1,4 +1,26 @@
-# Deno vite plugin
+
+# Problem:
+
+Deno *can* resolve a local workspace, from an outside-workspace project.
+
+I expected `@deno/vite-plugin` to be able to do that. It can't.
+
+See EXAMPLE/readme.md for 
+- minimal reproduction
+- how deno works as intended
+- how vite plugin fails
+- and how it is solved
+
+See src/index.ts, prefixPlugin.ts and resolvePlugin.ts files for the change.
+
+This readme and EXAMPLE/readme is written by me, human. 
+
+However the actual **code in ts files were written by AI. Beware!**
+
+Thank you for checking this out.
+
+---
+## Deno vite plugin
 
 Plugin to enable Deno resolution inside [vite](https://github.com/vitejs/vite).
 It supports:
