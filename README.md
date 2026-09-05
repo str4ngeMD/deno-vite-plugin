@@ -13,9 +13,9 @@ See EXAMPLE/readme.md for
 
 See src/index.ts, prefixPlugin.ts and resolvePlugin.ts files for the change.
 
-This readme and EXAMPLE/readme is written by me, human. 
+This readme and everything inside EXAMPLE is written by me, human. 
 
-However the actual **code in ts files were written by AI. Beware!**
+However the actual **plugin code in 3 ts files were written by AI. Beware!**
 
 Thank you for checking this out.
 
