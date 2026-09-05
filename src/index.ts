@@ -10,7 +10,11 @@ import fs from "node:fs";
 import path from "node:path";
 import prefixPlugin from "./prefixPlugin.js";
 import mainPlugin from "./resolvePlugin.js";
-import type { DenoResolveResult } from "./resolver.js";
+import {
+  type DenoResolveResult,
+  isDenoSpecifier,
+  parseDenoSpecifier,
+} from "./resolver.js";
 
 export type { MediaType } from "@deno/loader";
 
@@ -98,43 +102,100 @@ function findDenoConfig(startDir: string): string | null {
   return nearest;
 }
 
+/**
+ * Find the Deno config governing an importer. Deno virtual module ids encode
+ * the real resolved path, so unwrap those before walking the filesystem.
+ */
+function findDenoConfigForImporter(
+  importer: string | undefined,
+  fallbackConfigPath: string | null,
+): string | null {
+  if (importer === undefined) return fallbackConfigPath;
+
+  let importerPath = importer.split("?")[0];
+
+  if (isDenoSpecifier(importer)) {
+    const { resolved } = parseDenoSpecifier(importer);
+
+    if (path.isAbsolute(resolved)) {
+      importerPath = resolved;
+    } else {
+      // Remote/opaque virtual modules have no filesystem scope to discover.
+      return fallbackConfigPath;
+    }
+  }
+
+  if (!path.isAbsolute(importerPath)) return fallbackConfigPath;
+  if (importerPath.startsWith("/@")) return fallbackConfigPath;
+  if (importerPath.includes("/node_modules/")) return fallbackConfigPath;
+
+  return findDenoConfig(path.dirname(importerPath)) ?? fallbackConfigPath;
+}
+
 export default function deno(options?: DenoPluginOptions): Plugin[] {
+  // A single Vite graph may cross multiple Deno config/workspace scopes.
+  // Keep loaders and resolution caches isolated by environment + config.
   const loaders = new Map<string, Promise<Loader>>();
-  // Per-environment resolution caches. Different environments may have
-  // different WorkspaceOptions (e.g. platform: "node" vs "browser"),
-  // so the same specifier can resolve differently across environments.
   const caches = new Map<string, Map<string, DenoResolveResult>>();
   let configPath: string | null = null;
   let configResolved = false;
 
-  function createLoaderForEnv(envName: string): Promise<Loader> {
-    const envOpts = options?.environments?.[envName];
+  function createLoaderForEnv(
+    envName: string | undefined,
+    requestedConfigPath: string | null,
+  ): Promise<Loader> {
+    const envOpts = envName === undefined
+      ? undefined
+      : options?.environments?.[envName];
     const baseOpts = options?.workspaceOptions ?? {};
     const wsOpts: WorkspaceOptions = {
       ...baseOpts,
       ...envOpts,
-      ...(configPath ? { configPath } : {}),
+      ...(requestedConfigPath ? { configPath: requestedConfigPath } : {}),
     };
     return new Workspace(wsOpts).createLoader();
   }
 
-  function getLoader(envName?: string): Promise<Loader> {
-    // When envName is undefined (Vite <7 or outside environment context),
-    // use a sentinel key that won't collide with real environment names.
-    const key = envName ?? "__default__";
+  function loaderKey(
+    envName: string | undefined,
+    requestedConfigPath: string | null,
+  ): string {
+    return JSON.stringify([
+      envName ?? "__default__",
+      requestedConfigPath ?? "__default__",
+    ]);
+  }
+
+  function getLoader(
+    envName?: string,
+    importer?: string,
+  ): Promise<Loader> {
+    if (!configResolved) {
+      throw new Error("deno plugin: loader not initialized");
+    }
+
+    const requestedConfigPath = findDenoConfigForImporter(importer, configPath);
+    const key = loaderKey(envName, requestedConfigPath);
+
     let promise = loaders.get(key);
     if (!promise) {
-      if (!configResolved) {
-        throw new Error("deno plugin: loader not initialized");
-      }
-      promise = createLoaderForEnv(key);
+      promise = createLoaderForEnv(envName, requestedConfigPath);
       loaders.set(key, promise);
     }
     return promise;
   }
 
-  function getCache(envName?: string): Map<string, DenoResolveResult> {
-    const key = envName ?? "__default__";
+  function getCache(
+    envName?: string,
+    importer?: string,
+  ): Map<string, DenoResolveResult> {
+    if (!configResolved) {
+      throw new Error("deno plugin: loader not initialized");
+    }
+
+    const requestedConfigPath = findDenoConfigForImporter(importer, configPath);
+    const key = loaderKey(envName, requestedConfigPath);
+
     let cache = caches.get(key);
     if (!cache) {
       cache = new Map();
@@ -148,6 +209,7 @@ export default function deno(options?: DenoPluginOptions): Plugin[] {
       name: "deno:config",
       configResolved(config) {
         const root = path.normalize(config.root);
+        // Default scope for imports originating from the Vite project itself.
         configPath = findDenoConfig(root);
         configResolved = true;
       },

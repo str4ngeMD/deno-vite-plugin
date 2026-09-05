@@ -7,7 +7,7 @@ import {
   parseDenoSpecifier,
   resolveViteSpecifier,
 } from "./resolver.js";
-import type { LoadContext, OnLoadResult } from "./index.js";
+import type { LoadContext, OnLoadResult } from "./index.ts";
 import process from "node:process";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -34,8 +34,11 @@ function rewriteHttpImports(code: string): string {
 }
 
 export default function denoPlugin(
-  getCache: (envName?: string) => Map<string, DenoResolveResult>,
-  getLoader: (envName?: string) => Promise<Loader>,
+  getCache: (
+    envName?: string,
+    importer?: string,
+  ) => Map<string, DenoResolveResult>,
+  getLoader: (envName?: string, importer?: string) => Promise<Loader>,
   onLoad?: (ctx: LoadContext) => OnLoadResult | Promise<OnLoadResult>,
 ): Plugin {
   let root = process.cwd();
@@ -58,8 +61,8 @@ export default function denoPlugin(
 
       // @ts-ignore Vite 7+ Environment API
       const envName: string | undefined = this.environment?.name;
-      const loader = await getLoader(envName);
-      const cache = getCache(envName);
+      const loader = await getLoader(envName, importer);
+      const cache = getCache(envName, importer);
       return await resolveViteSpecifier(id, cache, root, loader, importer);
     },
     async load(id) {
@@ -71,7 +74,9 @@ export default function denoPlugin(
 
       // @ts-ignore Vite 7+ Environment API
       const envName: string | undefined = this.environment?.name;
-      const denoLoader = await getLoader(envName);
+      // `id` is the Deno virtual module id; getLoader unwraps its real path
+      // and selects the Deno config/workspace governing that module.
+      const denoLoader = await getLoader(envName, id);
       const specifierUrl = resolved.startsWith("/") ||
           /^[a-zA-Z]:/.test(resolved)
         ? pathToFileURL(resolved).href

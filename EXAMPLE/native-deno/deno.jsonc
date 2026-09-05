@@ -1,0 +1,11 @@
+{
+    "imports": {
+        // we can give it any alias we want
+        "@CoolMath/circleArea": "../math-workspace/circleArea/mod.ts"
+
+        /**
+         * In the ideal case:
+         * "native-deno" never needs to know the path to `@MyMath/computePi` explicitly.
+         */
+    }
+}

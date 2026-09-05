@@ -1,0 +1,6 @@
+{
+    // Think of this as a "deep module". 
+    // It is only directly consumed by "@MyMath/circleArea"
+    "name": "@MyMath/computePi",
+    "exports": "./mod.ts"
+}

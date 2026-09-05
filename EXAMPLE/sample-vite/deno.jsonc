@@ -1,0 +1,21 @@
+{
+    "imports": {
+        // we can give it any alias we want
+        "@CoolMath/circleArea": "../math-workspace/circleArea/mod.ts"
+
+        /**
+         * In the ideal case:
+         * "sample-vite" never needs to know the path to `@MyMath/computePi` explicitly... 
+         *
+         * However: even after installing @deno/vite-plugin and creating vite.config.ts,
+         * it cannot resolve to "computePi"!
+         *
+         * "native-deno" was able to. This one, can't.
+         */
+    },
+
+    "links": [
+        "../../" // from sample-vite to EXAMPLE to deno-vite-plugin (this repo)
+        // overrides the actual package
+    ]
+}

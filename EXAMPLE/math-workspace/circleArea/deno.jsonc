@@ -1,0 +1,9 @@
+{
+    // This is the terminal library, 
+    // that consumes "@MyMath/computePi", 
+    // and exports to anyone who wants area().
+    "name": "@MyMath/circleArea",
+    "exports":"./mod.ts"
+    // and notice this doesn't need explicit `imports --> @MyMath/computePi`
+    // this is one of the best things about Deno IMHO!
+}

@@ -1,0 +1,9 @@
+{
+    // Totally encapsulated, 
+    // only concerned with itself, 
+    // nice workspace for our math library.
+    "workspace":[
+        "circleArea", // @MyMath/circleArea  <--- this will be consumed by outsiders (native-deno and sample-vite)
+        "computePi"   // @MyMath/computePi
+    ]
+}
