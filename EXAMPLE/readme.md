@@ -1,3 +1,5 @@
+![example overview](image-1.png)
+
 ## Problem
 
 ```sh

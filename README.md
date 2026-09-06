@@ -1,5 +1,5 @@
 
-![ideal case](image.png)
+![example overview](image.png)
 
 # Problem:
 
