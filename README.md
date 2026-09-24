@@ -24,7 +24,7 @@ Thank you for checking this out.
 Also I put this to JSR for my convenience, (until the original repo gains this feature).
 
 ```
-deno add jsr:@str4ngemd/deno-vite-plugin@2.0.3-1 
+deno add jsr:@str4ngemd/deno-vite-plugin
 ```
 
 
