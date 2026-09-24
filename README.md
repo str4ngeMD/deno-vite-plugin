@@ -21,6 +21,13 @@ However the actual **plugin code in 3 ts files were written by AI. Beware!**
 
 Thank you for checking this out.
 
+Also I put this to JSR for my convenience, (until the original repo gains this feature).
+
+```
+deno add jsr:@str4ngemd/deno-vite-plugin@2.0.3-1 
+```
+
+
 ---
 ## Deno vite plugin
 
