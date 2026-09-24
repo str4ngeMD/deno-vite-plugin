@@ -135,3 +135,5 @@ dist
 vendor/
 dist/
 REVIEW.md
+
+.DS_Store
